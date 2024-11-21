@@ -1,0 +1,15 @@
+[Users]
+PS001, Dr. Smith, PersonalSupervisor
+PS002, Dr. Johnson, PersonalSupervisor
+S001, Alice, Student
+S002, Bob, Student
+S003, Lola Bunny, Student
+ST001, Prof. Williams, SeniorTutor
+M001, Jack, MaintenanceStaff
+
+[Self reports]
+
+[Meetings]
+
+[Notes]
+
