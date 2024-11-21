@@ -133,7 +133,7 @@ namespace PersonalSupervisorSystem
                     break;
                 case 3:
                     ViewReceivedNotes(); // View notes received by the user
-                    break; 
+                    break;
                 case 4:
                     // Prompt for note details and send the note
                     Console.Write("Enter the recipient ID: ");

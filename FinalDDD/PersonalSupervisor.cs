@@ -7,108 +7,115 @@ using System.Threading.Tasks;
 using PersonalSupervisorSystem;
 
 
-
-
 namespace PersonalSupervisorSystem
 {
-    // Represents a personal supervisor, extending the User class
     public class PersonalSupervisor : User
     {
-        public List<Student> Students { get; set; } // List of students assigned to this supervisor
-        public List<Meeting> Meetings { get; set; } // List of meetings organised by the supervisor
+        public List<Student> Students { get; set; }
+        public List<Meeting> Meetings { get; set; }
 
-        // Constructor to initialise a personal supervisor with a user ID and name
         public PersonalSupervisor(string userID, string name)
             : base(userID, name, UserRole.PersonalSupervisor)
         {
             Students = new List<Student>();
-            Meetings = new List<Meeting>();  // Initialise the meetings list
+            Meetings = new List<Meeting>();
         }
+
 
         public void AddStudent(Student student)
         {
             Students.Add(student);
         }
 
-        // Method to book a meeting with a student, including meeting details
+
         public void BookMeeting(Student student, string meetingDetails)
         {
-            var meeting = new Meeting(student, this, meetingDetails);  // Pass meetingDetails
-            Meetings.Add(meeting);  // Add the meeting to the list
+            var meeting = new Meeting(student, this, meetingDetails);
+            Meetings.Add(meeting);
             Console.WriteLine($"Meeting booked with {student.Name} by Supervisor {Name}. Details: {meetingDetails}");
         }
 
-        // View all meetings that have been booked by this supervisor
         public void ViewMeetings()
         {
             Console.WriteLine($"\n--- Meetings for Supervisor {Name} ---");
-            if (Meetings.Count == 0)  // Check if no meetings have been booked
+            if (Meetings.Count == 0)
             {
-                Console.WriteLine("No meetings booked yet.");   // Inform if the list is empty 
+                Console.WriteLine("No meetings booked yet.");
             }
             else
             {
                 foreach (var meeting in Meetings)
                 {
-                    Console.WriteLine(meeting);  // Display the details of each meeting
+                    Console.WriteLine(meeting);
                 }
             }
         }
 
-        // Method to review self-reports submitted by the supervisor's students
         public void ReviewStudentReports()
         {
             Console.WriteLine($"Supervisor {Name} reviewing student reports:");
-            foreach (var student in Students)  // Iterate over each student assigned to the supervisor
+            foreach (var student in Students)
             {
                 Console.WriteLine($"- {student.Name} submitted {student.GetSelfReports().Count} report(s).");
                 foreach (var report in student.GetSelfReports())
                 {
-                    Console.WriteLine(report);  // Use the SelfReport's ToString() method
+                    Console.WriteLine(report);
                 }
             }
         }
-
-        // Displays the menu options available to the personal supervisor
         public override void ShowMenu()
         {
             Console.WriteLine("\n--- Personal Supervisor Menu ---");
             Console.WriteLine("1. Review Student Reports");
             Console.WriteLine("2. View Meetings");
-            Console.WriteLine("3. View Sent Notes");
-            Console.WriteLine("4. View Received Notes");
-            Console.WriteLine("5. Send Note");
-            Console.WriteLine("6. Exit");
+            Console.WriteLine("3. Book Meeting"); // Book Meeting as option 3
+            Console.WriteLine("4. View Sent Notes");
+            Console.WriteLine("5. View Received Notes");
+            Console.WriteLine("6. Send Note");
+            Console.WriteLine("7. Exit");
             Console.Write("Choose an option: ");
         }
 
-        // Handles actions based on the supervisor's menu choice
         public override bool HandleActions(int choice, Dictionary<string, User> users)
         {
             switch (choice)
             {
                 case 1:
-                    ReviewStudentReports();  // Review student reports and show contents
+                    ReviewStudentReports();
                     break;
                 case 2:
-                    ViewMeetings();  // View all meetings booked with the supervisor
+                    ViewMeetings();
                     break;
-                case 3:
-                    ViewSentNotes(); // Display notes sent by the supervisor
+                case 3: // Book Meeting is now case 3
+                    Console.Write("Enter the student ID for the meeting: ");
+                    string meetingStudentID = Console.ReadLine();
+                    var studentForMeeting = Students.FirstOrDefault(s => s.UserID == meetingStudentID);
+                    if (studentForMeeting != null)
+                    {
+                        Console.Write("Enter meeting details: ");
+                        string meetingDetails = Console.ReadLine();
+                        BookMeeting(studentForMeeting, meetingDetails);
+                    }
+                    else
+                    {
+                        Console.WriteLine("Student not found. Please ensure the student is already added.");
+                    }
                     break;
                 case 4:
-                    ViewReceivedNotes(); // Display notes received by the supervisor
+                    ViewSentNotes();
                     break;
                 case 5:
-                    // Prompt the supervisor to send a note to another user
+                    ViewReceivedNotes();
+                    break;
+                case 6:
                     Console.Write("Enter the recipient ID: ");
                     string recipientID = Console.ReadLine();
                     Console.Write("Enter the note: ");
                     string note = Console.ReadLine();
-                    SendNoteTo(users, recipientID, note); // Send the note to the specified user
+                    SendNoteTo(users, recipientID, note);
                     break;
-                case 6:
-                    return false; // Exit the menu
+                case 7:
+                    return false;
             }
             return true;
         }

@@ -26,7 +26,7 @@ namespace PersonalSupervisorSystem
         }
 
         public override string ToString() // Override ToString method to display the report's details in a readable format
-        { 
+        {
             return $"[{ReportDate}] {ReportText}"; // Format the output to show the date and text of the report
         }
 

@@ -33,21 +33,56 @@ namespace PersonalSupervisorSystem
         }
 
 
-        // Method to view all meetings related to the students under this Senior Tutor
+
         public void ViewMeetings()
         {
-            Console.WriteLine($"\n--- Meetings for Supervisor {Name} ---");
+            Console.WriteLine($"\n--- Meetings Overview for Senior Tutor {Name} ---");
 
-            // Iterate over each student and their meetings
+            bool meetingsFound = false;
+
+            // Display meetings requested by students
+            Console.WriteLine("\nMeetings Requested by Students:");
             foreach (var student in Students)
             {
-                foreach (var meeting in student.Meetings)
+                if (student.Meetings.Count == 0)
                 {
-                    Console.WriteLine(meeting);  // Display the details of each meeting
+                    Console.WriteLine($"- {student.Name} (ID: {student.UserID}): No meetings requested.");
+                }
+                else
+                {
+                    Console.WriteLine($"- {student.Name} (ID: {student.UserID}):");
+                    foreach (var meeting in student.Meetings)
+                    {
+                        Console.WriteLine($"  {meeting}");
+                        meetingsFound = true;
+                    }
                 }
             }
 
+            // Display meetings booked by supervisors
+            Console.WriteLine("\nMeetings Organized by Supervisors:");
+            foreach (var supervisor in Supervisors)
+            {
+                if (supervisor.Meetings.Count == 0)
+                {
+                    Console.WriteLine($"- {supervisor.Name} (ID: {supervisor.UserID}): No meetings booked.");
+                }
+                else
+                {
+                    Console.WriteLine($"- {supervisor.Name} (ID: {supervisor.UserID}):");
+                    foreach (var meeting in supervisor.Meetings)
+                    {
+                        Console.WriteLine($"  {meeting}");
+                        meetingsFound = true;
+                    }
+                }
+            }
 
+            // If no meetings found at all, display a message
+            if (!meetingsFound)
+            {
+                Console.WriteLine("No meetings scheduled across all students and supervisors.");
+            }
         }
 
 
@@ -106,11 +141,11 @@ namespace PersonalSupervisorSystem
                 case 5:
                     ViewReceivedNotes(); // View the notes received by the Senior Tutor
                     break;
-                case 6: 
+                case 6:
                     Console.Write("Enter the recipient ID: ");  // Allow the Senior Tutor to send a note to a recipient
                     string recipientID = Console.ReadLine();
                     Console.Write("Enter the note: ");
-                    string note = Console.ReadLine(); 
+                    string note = Console.ReadLine();
                     SendNoteTo(users, recipientID, note); // Send the note to the specified recipient
                     break;
                 case 7:

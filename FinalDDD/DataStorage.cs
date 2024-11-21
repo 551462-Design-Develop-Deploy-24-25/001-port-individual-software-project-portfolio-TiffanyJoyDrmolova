@@ -11,34 +11,34 @@ namespace PersonalSupervisorSystem
 {
     public static class DataStorage
     {
-        private const string FilePath = "data.txt";  // Path to the file where data is stored
+        private const string FilePath = "data.txt"; // Path to the file where data is stored
 
-        // Method to save all data to a file
+        // Save all data to the file
         public static void SaveData(Dictionary<string, User> users)
         {
             using (StreamWriter sw = new StreamWriter(FilePath))
             {
-                // Save User Data
+                // Save user data
                 sw.WriteLine("[Users]");
                 foreach (var user in users.Values)
                 {
                     sw.WriteLine($"{user.UserID}, {user.Name}, {user.Role}");
                 }
 
-                // Save self-reports (only applicable to Students)
-                sw.WriteLine("\n[Self reports]");
+                // Save self-reports (only for Students)
+                sw.WriteLine("\n[SelfReports]");
                 foreach (var user in users.Values)
                 {
                     if (user is Student student)
                     {
-                        foreach (var selfReport in student.SelfReports)
+                        foreach (var report in student.SelfReports)
                         {
-                            sw.WriteLine($"{student.UserID}, {user.Name} {selfReport.ReportDate}, {selfReport.ReportText}");
+                            sw.WriteLine($"{student.UserID}, {report.ReportDate:yyyy-MM-dd}, {report.ReportText}");
                         }
                     }
                 }
 
-                // Save meetings (only applicable to Students and their Supervisors)
+                // Save meetings (for both Students and Supervisors)
                 sw.WriteLine("\n[Meetings]");
                 foreach (var user in users.Values)
                 {
@@ -46,58 +46,58 @@ namespace PersonalSupervisorSystem
                     {
                         foreach (var meeting in student.Meetings)
                         {
-                            sw.WriteLine($"{student.UserID}, {meeting.Supervisor.UserID}, {student.Name} , {meeting.MeetingDate:yyyy-MM-dd HH:mm}, {meeting.MeetingDetails}");
+                            sw.WriteLine($"{student.UserID}, {meeting.Supervisor.UserID}, {meeting.MeetingDate:yyyy-MM-dd HH:mm}, {meeting.MeetingDetails}");
+                        }
+                    }
+
+                    if (user is PersonalSupervisor supervisor)
+                    {
+                        foreach (var meeting in supervisor.Meetings)
+                        {
+                            sw.WriteLine($"{supervisor.UserID}, {meeting.Student.UserID}, {meeting.MeetingDate:yyyy-MM-dd HH:mm}, {meeting.MeetingDetails}");
                         }
                     }
                 }
 
-                // Save notes (messages sent between users)
+                // Save notes (messages between users)
                 sw.WriteLine("\n[Notes]");
                 foreach (var user in users.Values)
                 {
                     foreach (var note in user.SentNotes)
                     {
-                        sw.WriteLine($"{note.SenderID} , {note.RecipientID} , {user.Name} , {note.Timestamp},  {note.Content}");
+                        sw.WriteLine($"{note.SenderID}, {note.RecipientID}, {note.Timestamp:yyyy-MM-dd HH:mm}, {note.Content}");
                     }
                 }
             }
         }
 
-        // Method to load all data from the file
+        // Load all data from the file
         public static void LoadData(Dictionary<string, User> users)
         {
-            // Check if the data file exists before attempting to read
             if (!File.Exists(FilePath)) return;
 
-            // Read all lines from the file
             string[] lines = File.ReadAllLines(FilePath);
             string currentSection = null;
 
-            // Process each line in the file
             foreach (var line in lines)
             {
-                // Check if the line indicates a section (e.g., [Users], [Meetings])
                 if (line.StartsWith("["))
                 {
                     currentSection = line.Trim('[', ']');
                     continue;
                 }
 
-                // Skip empty lines
-                if (string.IsNullOrWhiteSpace(line)) continue; // Skip empty lines
+                if (string.IsNullOrWhiteSpace(line)) continue;
 
-                // Handle each section's data parsing
                 if (currentSection == "Users")
                 {
                     var parts = line.Split(',');
-                    if (parts.Length == 3) // Ensure there are exactly 3 parts
+                    if (parts.Length == 3)
                     {
-                        // Parse user details
                         string userID = parts[0].Trim();
                         string name = parts[1].Trim();
                         UserRole role = Enum.TryParse(parts[2].Trim(), out UserRole parsedRole) ? parsedRole : throw new ArgumentException("Invalid role");
 
-                        // Create a User object based on their role
                         User user = role switch
                         {
                             UserRole.Student => new Student(userID, name, null),
@@ -107,46 +107,46 @@ namespace PersonalSupervisorSystem
                             _ => throw new ArgumentException("Invalid role")
                         };
 
-                        users[userID] = user; // Add the user to the dictionary
+                        users[userID] = user;
                     }
                 }
-
                 else if (currentSection == "Meetings")
                 {
                     var parts = line.Split(',');
-                    if (parts.Length == 4) // Ensure there are exactly 4 parts
+                    if (parts.Length == 4)
                     {
-                        // Parse meeting details
-                        string studentID = parts[0].Trim();
-                        string supervisorID = parts[1].Trim();
-                        DateTime meetingDate = DateTime.TryParse(parts[2].Trim(), out DateTime parsedDate) ? parsedDate : throw new ArgumentException("Invalid date format");
-                        string details = parts[3].Trim();
+                        string userID1 = parts[0].Trim();
+                        string userID2 = parts[1].Trim();
+                        DateTime meetingDate = DateTime.Parse(parts[2].Trim());
+                        string meetingDetails = parts[3].Trim();
 
-                        // Validate and create the meeting if users exist
-                        if (users.ContainsKey(studentID) && users.ContainsKey(supervisorID))
+                        if (users.TryGetValue(userID1, out var user1) && users.TryGetValue(userID2, out var user2))
                         {
-                            var student = (Student)users[studentID];
-                            var supervisor = (PersonalSupervisor)users[supervisorID];
-                            var meeting = new Meeting(student, supervisor, details) { MeetingDate = meetingDate };
-
-                            // Add the meeting to both the student and supervisor
-                            student.Meetings.Add(meeting);
-                            supervisor.Meetings.Add(meeting);
+                            if (user1 is Student student && user2 is PersonalSupervisor supervisor)
+                            {
+                                var meeting = new Meeting(student, supervisor, meetingDetails) { MeetingDate = meetingDate };
+                                student.Meetings.Add(meeting);
+                                supervisor.Meetings.Add(meeting);
+                            }
+                            else if (user1 is PersonalSupervisor supervisor1 && user2 is Student student1)
+                            {
+                                var meeting = new Meeting(student1, supervisor1, meetingDetails) { MeetingDate = meetingDate };
+                                student1.Meetings.Add(meeting);
+                                supervisor1.Meetings.Add(meeting);
+                            }
                         }
                     }
                 }
                 else if (currentSection == "Notes")
                 {
                     var parts = line.Split(',');
-                    if (parts.Length == 3) // Ensure there are exactly 3 parts
+                    if (parts.Length == 4)
                     {
-
-                        // Parse note details
                         string senderID = parts[0].Trim();
                         string recipientID = parts[1].Trim();
-                        string content = parts[2].Trim();
+                        DateTime timestamp = DateTime.Parse(parts[2].Trim());
+                        string content = parts[3].Trim();
 
-                        // Validate and create the note if users exist
                         if (users.ContainsKey(senderID) && users.ContainsKey(recipientID))
                         {
                             var note = new Note(senderID, recipientID, content);

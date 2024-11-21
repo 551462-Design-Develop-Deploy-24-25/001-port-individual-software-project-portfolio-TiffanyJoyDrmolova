@@ -19,7 +19,7 @@ namespace PersonalSupervisorSystem
         public PersonalSupervisor Supervisor { get; private set; }
 
         // List of self-reports submitted by the student
-        public List<SelfReport> SelfReports { get; set; } 
+        public List<SelfReport> SelfReports { get; set; }
 
         // List of meetings requested by the student with their supervisor
         public List<Meeting> Meetings { get; private set; }  // List to store meetings
@@ -55,24 +55,25 @@ namespace PersonalSupervisorSystem
             Console.WriteLine($"Student {Name} requested a meeting with {Supervisor.Name}.");
         }
 
-        // Method to view the meetings
+
         public void ViewMeetings()
         {
             Console.WriteLine($"\n--- Meetings for Student {Name} ---");
+            var supervisorMeetings = Supervisor.Meetings.Where(m => m.Student == this).ToList();
 
-            // Check if the student has any meetings
-            if (Meetings.Count == 0)
+            if (supervisorMeetings.Count == 0)
             {
-                Console.WriteLine("No meetings requested yet.");
+                Console.WriteLine("No meetings scheduled yet.");
             }
             else
             {
-                foreach (var meeting in Meetings)
+                foreach (var meeting in supervisorMeetings)
                 {
-                    Console.WriteLine(meeting);  // Display the details of each meeting
+                    Console.WriteLine(meeting);
                 }
             }
         }
+
 
         // Overriding ShowMenu method to display options for a Student
         public override void ShowMenu()

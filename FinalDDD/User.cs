@@ -5,8 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 using PersonalSupervisorSystem;
 
-using System;
-using System.Collections.Generic;
 
 namespace PersonalSupervisorSystem
 {
